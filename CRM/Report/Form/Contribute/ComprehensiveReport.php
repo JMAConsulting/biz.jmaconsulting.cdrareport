@@ -442,7 +442,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       }
       $prefix = '';
       if (array_search($values[0], $this->_prefixKeys)) {
-        $prefix = '$';
+        $prefix = CRM_Core_Config::singleton()->defaultCurrencySymbol;
       }
       $suffix = '';
       if (array_search($values[0], $this->_suffixKeys)) {
