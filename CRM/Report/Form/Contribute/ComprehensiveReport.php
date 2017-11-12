@@ -94,7 +94,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       'revenue_per_donor' => 'IF (COUNT(DISTINCT cc.contact_id) = 0, 0, SUM(cc.total_amount) / COUNT(DISTINCT cc.contact_id))',
       'gift_per_donor' => 'IF (COUNT(DISTINCT cc.contact_id) = 0, 0, COUNT(DISTINCT cc.id) / COUNT(DISTINCT cc.contact_id))',
       'revenue_per_gift' => 'IF (COUNT(DISTINCT cc.id) = 0, 0, SUM(cc.total_amount) / COUNT(DISTINCT cc.id))',
-      'lost_last' => ' IF (contact_id_count > 0 , contact_id_count, 0)',
+      'lost_last' => ' IF (SUM(contact_id_count) > 0 , SUM(contact_id_count), 0)',
       'donor_retention_rate' => 'IF (SUM(prior_year_donor) = 0, 0, SUM(retained_donor)/SUM(prior_year_donor) * 100)',
       'revenue_retention_rate' => 'IF (SUM(active_revenue) = 0, 0, SUM(retained_revenue)/SUM(active_revenue) * 100)',
       'attrition_rate' => 'IF (SUM(prior_year_donor) = 0, 0, (SUM(prior_year_donor) - SUM(retained_donor))/SUM(prior_year_donor) * 100)',
@@ -387,7 +387,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       ",
       'lost_last' => "SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
         FROM (
-          SELECT  -COUNT(DISTINCT contact_id)  AS contact_id_count
+          SELECT  1, -COUNT(DISTINCT contact_id)  AS contact_id_count
                 FROM civicrm_contribution cc
                 WHERE  cc.contribution_status_id IN (%5)
                 AND (cc.receive_date > %9 AND cc.receive_date <= %8)
@@ -397,7 +397,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
                     GROUP BY contact_id
                   )
                 UNION
-                SELECT COUNT(DISTINCT contact_id)
+                SELECT 2, COUNT(DISTINCT contact_id)
                 FROM civicrm_contribution cc
                 WHERE cc.contribution_status_id IN (%5)
                   AND cc.receive_date > %10 AND cc.receive_date <= %9
