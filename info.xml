@@ -5,8 +5,8 @@
   <description>This extension adds the Comprehensive Donor Revenue Analysis Report in CiviCRM for a DonorPerfect migrated instance</description>
   <license>AGPL-3.0</license>
   <maintainer>
-    <author>Edsel</author>
-    <email>edsel.lopez@jmaconsulting.biz</email>
+    <author>JMA Consulting</author>
+    <email>support@jmaconsulting.biz</email>
   </maintainer>
   <urls>
     <url desc="Main Extension Page">http://FIXME</url>

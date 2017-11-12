@@ -4,17 +4,17 @@
 // database as appropriate. For more details, see "hook_civicrm_managed" at:
 // http://wiki.civicrm.org/confluence/display/CRMDOC42/Hook+Reference
 return array (
-  0 => 
+  0 =>
   array (
-    'name' => 'CRM_CDRA_Report_Form_CDRA',
+    'name' => 'CRM_Report_Form_Contribute_ComprehensiveReport',
     'entity' => 'ReportTemplate',
-    'params' => 
+    'params' =>
     array (
       'version' => 3,
       'label' => 'Comprehensive Donor Revenue Analysis Report',
       'description' => 'Comprehensive Donor Revenue Analysis Report (biz.jmaconsulting.cdrareport)',
-      'class_name' => 'CRM_CDRA_Report_Form_CDRA',
-      'report_url' => 'cdra',
+      'class_name' => 'CRM_Report_Form_Contribute_ComprehensiveReport',
+      'report_url' => 'comprehensiveReport',
       'component' => 'CiviContribute',
     ),
   ),
