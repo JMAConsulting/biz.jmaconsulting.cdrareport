@@ -74,12 +74,10 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
           'amount_difference' => array(
             'title' => ts('Amount Difference Current Year vs. Prior Year'),
             'required' => TRUE,
-            'dbAlias' => '(current_year - prior_year)',
           ),
           'percentage_change' => array(
             'title' => ts('Percent Change Current Year vs. Prior Year'),
             'required' => TRUE,
-            'dbAlias' => 'ROUND(((current_year - prior_year) / prior_year * 100), 2)',
           ),
         ),
       ),
@@ -93,13 +91,35 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       'donor_number' => 'COUNT(DISTINCT cc.contact_id)',
       'revenue' => 'SUM(cc.total_amount)',
       'gift_number' => 'COUNT(DISTINCT cc.id)',
-      'revenue_per_donor' => 'IF (COUNT(DISTINCT cc.contact_id) = 0, 0, ROUND(SUM(cc.total_amount) / COUNT(DISTINCT cc.contact_id), 2))',
-      'gift_per_donor' => 'IF (COUNT(DISTINCT cc.contact_id) = 0, 0, ROUND(COUNT(DISTINCT cc.id) / COUNT(DISTINCT cc.contact_id), 2))',
-      'revenue_per_gift' => 'IF (COUNT(DISTINCT cc.id) = 0, 0, ROUND(SUM(cc.total_amount) / COUNT(DISTINCT cc.id), 2))',
+      'revenue_per_donor' => 'IF (COUNT(DISTINCT cc.contact_id) = 0, 0, SUM(cc.total_amount) / COUNT(DISTINCT cc.contact_id))',
+      'gift_per_donor' => 'IF (COUNT(DISTINCT cc.contact_id) = 0, 0, COUNT(DISTINCT cc.id) / COUNT(DISTINCT cc.contact_id))',
+      'revenue_per_gift' => 'IF (COUNT(DISTINCT cc.id) = 0, 0, SUM(cc.total_amount) / COUNT(DISTINCT cc.id))',
       'lost_last' => ' IF (contact_id_count > 0 , contact_id_count, 0)',
-      'donor_retention_rate' => 'IF (SUM(prior_year_donor) = 0, 0, ROUND(SUM(retained_donor)/SUM(prior_year_donor) * 100, 2))',
-      'revenue_retention_rate' => 'IF (SUM(active_revenue) = 0, 0, ROUND(SUM(retained_revenue)/SUM(active_revenue) * 100, 2))',
-      'attrition_rate' => 'IF (SUM(prior_year_donor) = 0, 0, ROUND((SUM(prior_year_donor) - SUM(retained_donor))/SUM(prior_year_donor) * 100, 2))',
+      'donor_retention_rate' => 'IF (SUM(prior_year_donor) = 0, 0, SUM(retained_donor)/SUM(prior_year_donor) * 100)',
+      'revenue_retention_rate' => 'IF (SUM(active_revenue) = 0, 0, SUM(retained_revenue)/SUM(active_revenue) * 100)',
+      'attrition_rate' => 'IF (SUM(prior_year_donor) = 0, 0, (SUM(prior_year_donor) - SUM(retained_donor))/SUM(prior_year_donor) * 100)',
+    );
+    $this->_roundKeys = array(
+      '',
+      'revenue_per_donor',
+      'revenue_per_gift',
+      'donor_retention_rate',
+      'revenue_retention_rate',
+      'attrition_rate',
+      'revenue',
+      'gift_per_donor',
+    );
+    $this->_prefixKeys = array(
+      '',
+      'revenue',
+      'revenue_per_donor',
+      'revenue_per_gift',
+    );
+    $this->_suffixKeys = array(
+      '',
+      'donor_retention_rate',
+      'revenue_retention_rate',
+      'attrition_rate',
     );
     $this->_qParams = array(
       1 => array(
@@ -201,7 +221,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       )
     );
   }
-  
+
   public function from() {
     $this->buildTempTableForDPOReport();
     $this->_from .= " FROM {$this->_dpoTempTable} {$this->_aliases['civicrm_dpo']}";
@@ -213,7 +233,9 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       `label` VARCHAR(255) DEFAULT NULL,
       `current_year` VARCHAR(255) DEFAULT NULL,
       `prior_year` VARCHAR(255) DEFAULT NULL,
-      `two_years_ago` VARCHAR(255) DEFAULT NULL
+      `two_years_ago` VARCHAR(255) DEFAULT NULL,
+      `amount_difference` VARCHAR(255) DEFAULT NULL,
+      `percentage_change` VARCHAR(255) DEFAULT NULL
     )";
     CRM_Core_DAO::executeQuery($tempQuery);
     $this->insertActiveDonor();
@@ -414,7 +436,28 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
     }
     $mainQuery = $this->getQuery($queries['common_query']);
     foreach ($labels as $key => $values) {
-      $query = $sql . (empty($values[1]) ? $mainQuery : $this->getQuery($queries[$values[1]]));
+      $round = 0;
+      if (array_search($values[0], $this->_roundKeys)) {
+        $round = 2;
+      }
+      $prefix = '';
+      if (array_search($values[0], $this->_prefixKeys)) {
+        $prefix = '$';
+      }
+      $suffix = '';
+      if (array_search($values[0], $this->_suffixKeys)) {
+        $suffix = '%';
+      }
+      $query = (empty($values[1]) ? $mainQuery : $this->getQuery($queries[$values[1]]));
+      $query = "SELECT label,
+          CONCAT('{$prefix}', FORMAT(ROUND(SUM(current_year), {$round}), {$round}), '{$suffix}'),
+          CONCAT('{$prefix}', FORMAT(ROUND(SUM(prior_year), {$round}), {$round}), '{$suffix}'),
+          CONCAT('{$prefix}', FORMAT(ROUND(SUM(two_years_ago), {$round}), {$round}), '{$suffix}'),
+          CONCAT('{$prefix}', FORMAT(ROUND((SUM(current_year) - SUM(prior_year)), {$round}), {$round}), '{$suffix}'),
+          CONCAT(FORMAT(ROUND(((SUM(current_year) - SUM(prior_year))/SUM(prior_year) * 100), 2), 2), '%')
+        FROM ({$query}) AS temp"
+      ;
+      $query = $sql . $query;
       $params = array(
         1 => array($key, 'String'),
         2 => array($this->_sqlColumns[$values[0]], 'Text'),
@@ -430,12 +473,8 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       $params = $this->_queryDates[$i] + $this->_qParams[$i];
       $queries[] = CRM_Core_DAO::composeQuery($query, $params);
     }
-    $query = "SELECT label, SUM(current_year), SUM(prior_year), SUM(two_years_ago) FROM (" .
-      implode(' UNION ', $queries) .
-      ") AS temp"
-    ;
     //CRM_Core_Error::debug('sss', $query);
-    return $query;
+    return implode(' UNION ', $queries);
   }
 
 }
