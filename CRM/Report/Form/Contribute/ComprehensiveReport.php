@@ -144,16 +144,16 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
   }
 
   protected function getQueryDates() {
-    $fiscalYear = Civi::settings()->get('fiscalYearStart');
-    $fiscalYear = date('Y') . '-' . implode('-', $fiscalYear);
-    $fiscalYear = strtotime( '-1 month', strtotime($fiscalYear));
+    //$fiscalYear = Civi::settings()->get('fiscalYearStart');
+    //$fiscalYear = date('Y') . '-' . implode('-', $fiscalYear);
+    $fiscalYear = $nextYear = date('Y-m-d');
+    $fiscalYear = strtotime($fiscalYear);
 
-    $nextYear = date('Y-m-t', strtotime('+1 year', $fiscalYear));
-    $currentYear = date('Y-m-t', $fiscalYear);
-    $lastYear = date('Y-m-t', strtotime('-1 year', $fiscalYear));
-    $twoYearsAgo = date('Y-m-t', strtotime('-2 year', $fiscalYear));
-    $threeYearsAgo = date('Y-m-t', strtotime('-3 year', $fiscalYear));
-    $fourYearsAgo = date('Y-m-t', strtotime('-4 year', $fiscalYear));
+    $currentYear = date('Y-m-d', strtotime('-1 year', $fiscalYear));
+    $lastYear = date('Y-m-d', strtotime('-2 year', $fiscalYear));
+    $twoYearsAgo = date('Y-m-d', strtotime('-3 year', $fiscalYear));
+    $threeYearsAgo = date('Y-m-d', strtotime('-4 year', $fiscalYear));
+    $fourYearsAgo = date('Y-m-d', strtotime('-5 year', $fiscalYear));
     $this->_queryDates = array(
       1 => array(
         8 => array($nextYear, 'String'),
@@ -473,7 +473,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       $params = $this->_queryDates[$i] + $this->_qParams[$i];
       $queries[] = CRM_Core_DAO::composeQuery($query, $params);
     }
-    //CRM_Core_Error::debug('sss', $query);
+    //CRM_Core_Error::debug('sss', $queries);
     return implode(' UNION ', $queries);
   }
 
