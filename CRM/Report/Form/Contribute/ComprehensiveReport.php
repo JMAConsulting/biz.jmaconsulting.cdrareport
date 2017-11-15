@@ -217,7 +217,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
         ts('Number of Donors Active Last 2 years') => array('donor_number', 'active_2'),
         ts('Number of Donors Active Last 3+ years') => array('donor_number', 'active_3'),
         ts('Number of Donors lost from Last Year') => array('lost_last', 'lost_last'),
-        ts('Number of 2yr Donors lost from Last Year(TBD)') => array('donor_number'),//TBD
+        ts('Number of 2yr Donors lost from Last Year(TBD)') => array('donor_number', 'lost_2'),
       )
     );
   }
@@ -274,6 +274,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
         AND cc.contact_id IN (
           SELECT contact_id FROM civicrm_contribution
             WHERE receive_date <= %9 AND receive_date > %10
+            AND cc.contribution_status_id IN (%5)
             GROUP BY contact_id
         )
       ",
@@ -286,6 +287,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
               AND cc.contact_id IN (
                 SELECT contact_id FROM civicrm_contribution
                   WHERE receive_date <= %9 AND receive_date > %10
+                  AND cc.contribution_status_id IN (%5)
                   GROUP BY contact_id
                 )
                 UNION
@@ -303,6 +305,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
               AND cc.contact_id IN (
                 SELECT contact_id FROM civicrm_contribution
                   WHERE receive_date <= %9 AND receive_date > %10
+                    AND cc.contribution_status_id IN (%5)
                   GROUP BY contact_id
                 )
                 UNION
@@ -342,10 +345,16 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       WHERE cc.contribution_status_id IN (%5)
         AND cc.receive_date > %9 AND cc.receive_date <= %8
         AND cc.contact_id IN (
-          SELECT contact_id FROM civicrm_contribution WHERE receive_date <= %10 GROUP BY contact_id
+          SELECT contact_id FROM civicrm_contribution
+            WHERE receive_date <= %10
+             AND cc.contribution_status_id IN (%5)
+            GROUP BY contact_id
         )
         AND cc.contact_id NOT IN (
-          SELECT contact_id FROM civicrm_contribution WHERE receive_date <= %9 AND receive_date > %10
+          SELECT contact_id FROM civicrm_contribution
+          WHERE receive_date <= %9 AND receive_date > %10
+           AND cc.contribution_status_id IN (%5)
+          GROUP BY contact_id
         )
       ",
     );
@@ -364,23 +373,26 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       ",
       'active_2' => "SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
         FROM civicrm_contribution cc
-          WHERE  cc.contribution_status_id IN (%5)
+          WHERE cc.contribution_status_id IN (%5)
           AND (cc.receive_date > %9 AND cc.receive_date <= %8)
           AND cc.contact_id IN (
             SELECT contact_id FROM civicrm_contribution
               WHERE receive_date <= %9 AND receive_date > %10
+                AND cc.contribution_status_id IN (%5)
               GROUP BY contact_id
             )
       ",
       'active_3' => "SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
         FROM civicrm_contribution cc
-          WHERE  cc.contribution_status_id IN (%5)
+          WHERE cc.contribution_status_id IN (%5)
           AND (cc.receive_date > %9 AND cc.receive_date <= %8)
           AND cc.contact_id IN (
             SELECT contact_id FROM civicrm_contribution
               WHERE receive_date <= %9 AND receive_date > %10
-               AND contact_id IN ( SELECT contact_id FROM civicrm_contribution
+                AND cc.contribution_status_id IN (%5)
+                AND contact_id IN ( SELECT contact_id FROM civicrm_contribution
               WHERE receive_date <= %10 AND receive_date > %11
+                AND cc.contribution_status_id IN (%5)
               GROUP BY contact_id)
               GROUP BY contact_id
             )
@@ -394,6 +406,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
                 AND cc.contact_id 	IN (
                   SELECT contact_id FROM civicrm_contribution
                     WHERE receive_date <= %9 AND receive_date > %10
+                      AND cc.contribution_status_id IN (%5)
                     GROUP BY contact_id
                   )
                 UNION
@@ -412,6 +425,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
               AND cc.contact_id IN (
                 SELECT contact_id FROM civicrm_contribution
                   WHERE receive_date <= %9 AND receive_date > %10
+                    AND cc.contribution_status_id IN (%5)
                   GROUP BY contact_id
                 )
                 UNION
@@ -420,6 +434,20 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
                 WHERE cc.contribution_status_id IN (%5)
                   AND cc.receive_date > %10 AND cc.receive_date <= %9
       ) temp",
+      'lost_2' => " SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
+        FROM civicrm_contribution cc
+        WHERE cc.receive_date > %10 AND cc.receive_date <= %9
+          AND  contribution_status_id IN (%5)
+          AND contact_id IN (
+            SELECT DISTINCT contact_id
+              FROM civicrm_contribution cc
+              WHERE cc.receive_date > %11 AND cc.receive_date <= %10
+                AND  contribution_status_id IN (%5))
+                AND contact_id NOT IN (SELECT DISTINCT contact_id
+                    FROM civicrm_contribution cc
+                    WHERE cc.receive_date > %9 AND cc.receive_date <= %8
+                      AND  contribution_status_id IN (%5))
+      ",
     );
     $this->processQueries(
       ts('Attrition'),
