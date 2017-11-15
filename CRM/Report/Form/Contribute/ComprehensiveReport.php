@@ -217,7 +217,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
         ts('Number of Donors Active Last 2 years') => array('donor_number', 'active_2'),
         ts('Number of Donors Active Last 3+ years') => array('donor_number', 'active_3'),
         ts('Number of Donors lost from Last Year') => array('lost_last', 'lost_last'),
-        ts('Number of 2yr Donors lost from Last Year(TBD)') => array('donor_number', 'lost_2'),
+        ts('Number of 2yr Donors lost from Last Year') => array('donor_number', 'lost_2'),
       )
     );
   }
