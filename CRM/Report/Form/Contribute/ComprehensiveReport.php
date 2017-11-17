@@ -319,23 +319,22 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       'avg_donor_lifetime' => "SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
         FROM (
           SELECT MIN(receive_date) AS first_gift, MAX(receive_date) AS last_gift
-            FROM civicrm_contribution
+            FROM civicrm_contribution cc
             WHERE receive_date <= %8
               AND cc.contribution_status_id IN (%5)
             GROUP BY contact_id
           ) AS temp
       ",
-      'donor_lifetime_value' => "
-      SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
+      'donor_lifetime_value' => "SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
         FROM (
           SELECT AVG(DATEDIFF(last_gift, first_gift))/365.25 AS lifetime, 0 AS amount
             FROM (
               SELECT MIN(receive_date) AS first_gift, MAX(receive_date) AS last_gift
-                FROM civicrm_contribution
+                FROM civicrm_contribution cc
                 WHERE receive_date <= %8
                   AND cc.contribution_status_id IN (%5)
                   GROUP BY contact_id
-            )
+            ) AS S1
             UNION
             SELECT 0, SUM(total_amount) as amount
             FROM civicrm_contribution cc
