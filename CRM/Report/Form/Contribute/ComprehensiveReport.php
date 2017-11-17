@@ -336,7 +336,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
                   GROUP BY contact_id
             ) AS S1
             UNION
-            SELECT 0, SUM(total_amount)/COUNT(DISTINCT contact_id as amount
+            SELECT 0, SUM(total_amount)/COUNT(DISTINCT contact_id) as amount
             FROM civicrm_contribution cc
               WHERE cc.contribution_status_id IN (%5) AND cc.receive_date > %9
                 AND cc.receive_date <= %8
