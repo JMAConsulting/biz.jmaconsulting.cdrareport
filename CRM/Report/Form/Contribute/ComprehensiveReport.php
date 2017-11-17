@@ -98,9 +98,10 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       'donor_retention_rate' => 'IF (SUM(prior_year_donor) = 0, 0, SUM(retained_donor)/SUM(prior_year_donor) * 100)',
       'revenue_retention_rate' => 'IF (SUM(active_revenue) = 0, 0, SUM(retained_revenue)/SUM(active_revenue) * 100)',
       'attrition_rate' => 'IF (SUM(prior_year_donor) = 0, 0, (SUM(prior_year_donor) - SUM(retained_donor))/SUM(prior_year_donor) * 100)',
+      'avg_donor_lifetime' => 'AVG(DATEDIFF(last_gift, first_gift)) / 365.25',
+      'donor_lifetime_value' => ' SUM(lifetime) * SUM(amount)',
     );
     $this->_roundKeys = array(
-      '',
       'revenue_per_donor',
       'revenue_per_gift',
       'donor_retention_rate',
@@ -108,15 +109,16 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       'attrition_rate',
       'revenue',
       'gift_per_donor',
+      'avg_donor_lifetime',
+      'donor_lifetime_value',
     );
     $this->_prefixKeys = array(
-      '',
       'revenue',
       'revenue_per_donor',
       'revenue_per_gift',
+      'donor_lifetime_value',
     );
     $this->_suffixKeys = array(
-      '',
       'donor_retention_rate',
       'revenue_retention_rate',
       'attrition_rate',
@@ -193,8 +195,8 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
         ts('Retained Donor Revenue') => array('revenue'),
         ts('Revenue Retention Rate') => array('revenue_retention_rate', 'revenue_retention_rate'),
         ts('Revenue per Retained Donor') => array('revenue_per_donor'),
-        ts('Average Donor Lifetime(TBD)') => array('donor_number'),//TBD
-        ts('Lifetime Donor Value(TBD)') => array('donor_number'),//TBD
+        ts('Average Donor Lifetime(TBD)') => array('avg_donor_lifetime', 'avg_donor_lifetime'),
+        ts('Lifetime Donor Value(TBD)') => array('donor_lifetime_value', 'donor_lifetime_value'),
       ),
       'newDonor' => array(
         ts('Number of New Donors') => array('donor_number'),
@@ -314,6 +316,32 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
                 WHERE cc.contribution_status_id IN (%5)
                   AND cc.receive_date > %9 AND cc.receive_date <= %8
       ) temp",
+      'avg_donor_lifetime' => "SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
+        FROM (
+          SELECT MIN(receive_date) AS first_gift, MAX(receive_date) AS last_gift
+            FROM civicrm_contribution
+            WHERE receive_date <= %8
+              AND cc.contribution_status_id IN (%5)
+            GROUP BY contact_id
+          ) AS temp
+      ",
+      'donor_lifetime_value' => "
+      SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
+        FROM (
+          SELECT AVG(DATEDIFF(last_gift, first_gift))/365.25 AS lifetime, 0 AS amount
+            FROM (
+              SELECT MIN(receive_date) AS first_gift, MAX(receive_date) AS last_gift
+                FROM civicrm_contribution
+                WHERE receive_date <= %8
+                  AND cc.contribution_status_id IN (%5)
+                  GROUP BY contact_id
+            )
+            UNION
+            SELECT 0, SUM(total_amount) as amount
+            FROM civicrm_contribution cc
+              WHERE cc.contribution_status_id IN (%5) AND cc.receive_date > %9
+                AND cc.receive_date <= %8
+          ) AS temp"
     );
     $this->processQueries(
       ts('Retained Donors'),
@@ -465,15 +493,15 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
     $mainQuery = $this->getQuery($queries['common_query']);
     foreach ($labels as $key => $values) {
       $round = 0;
-      if (array_search($values[0], $this->_roundKeys)) {
+      if (in_array($values[0], $this->_roundKeys)) {
         $round = 2;
       }
       $prefix = '';
-      if (array_search($values[0], $this->_prefixKeys)) {
+      if (in_array($values[0], $this->_prefixKeys)) {
         $prefix = CRM_Core_Config::singleton()->defaultCurrencySymbol;
       }
       $suffix = '';
-      if (array_search($values[0], $this->_suffixKeys)) {
+      if (in_array($values[0], $this->_suffixKeys)) {
         $suffix = '%';
       }
       $query = (empty($values[1]) ? $mainQuery : $this->getQuery($queries[$values[1]]));
