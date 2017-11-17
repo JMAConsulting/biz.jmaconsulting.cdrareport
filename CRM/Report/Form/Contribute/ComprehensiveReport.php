@@ -276,7 +276,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
         AND cc.contact_id IN (
           SELECT contact_id FROM civicrm_contribution
             WHERE receive_date <= %9 AND receive_date > %10
-            AND cc.contribution_status_id IN (%5)
+            AND contribution_status_id IN (%5)
             GROUP BY contact_id
         )
       ",
@@ -289,7 +289,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
               AND cc.contact_id IN (
                 SELECT contact_id FROM civicrm_contribution
                   WHERE receive_date <= %9 AND receive_date > %10
-                  AND cc.contribution_status_id IN (%5)
+                  AND contribution_status_id IN (%5)
                   GROUP BY contact_id
                 )
                 UNION
@@ -307,7 +307,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
               AND cc.contact_id IN (
                 SELECT contact_id FROM civicrm_contribution
                   WHERE receive_date <= %9 AND receive_date > %10
-                    AND cc.contribution_status_id IN (%5)
+                    AND contribution_status_id IN (%5)
                   GROUP BY contact_id
                 )
                 UNION
@@ -374,13 +374,13 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
         AND cc.contact_id IN (
           SELECT contact_id FROM civicrm_contribution
             WHERE receive_date <= %10
-             AND cc.contribution_status_id IN (%5)
+             AND contribution_status_id IN (%5)
             GROUP BY contact_id
         )
         AND cc.contact_id NOT IN (
           SELECT contact_id FROM civicrm_contribution
           WHERE receive_date <= %9 AND receive_date > %10
-           AND cc.contribution_status_id IN (%5)
+           AND contribution_status_id IN (%5)
           GROUP BY contact_id
         )
       ",
@@ -405,7 +405,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
           AND cc.contact_id IN (
             SELECT contact_id FROM civicrm_contribution
               WHERE receive_date <= %9 AND receive_date > %10
-                AND cc.contribution_status_id IN (%5)
+                AND contribution_status_id IN (%5)
               GROUP BY contact_id
             )
       ",
@@ -416,10 +416,10 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
           AND cc.contact_id IN (
             SELECT contact_id FROM civicrm_contribution
               WHERE receive_date <= %9 AND receive_date > %10
-                AND cc.contribution_status_id IN (%5)
+                AND contribution_status_id IN (%5)
                 AND contact_id IN ( SELECT contact_id FROM civicrm_contribution
               WHERE receive_date <= %10 AND receive_date > %11
-                AND cc.contribution_status_id IN (%5)
+                AND contribution_status_id IN (%5)
               GROUP BY contact_id)
               GROUP BY contact_id
             )
@@ -433,7 +433,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
                 AND cc.contact_id 	IN (
                   SELECT contact_id FROM civicrm_contribution
                     WHERE receive_date <= %9 AND receive_date > %10
-                      AND cc.contribution_status_id IN (%5)
+                      AND contribution_status_id IN (%5)
                     GROUP BY contact_id
                   )
                 UNION
@@ -452,7 +452,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
               AND cc.contact_id IN (
                 SELECT contact_id FROM civicrm_contribution
                   WHERE receive_date <= %9 AND receive_date > %10
-                    AND cc.contribution_status_id IN (%5)
+                    AND contribution_status_id IN (%5)
                   GROUP BY contact_id
                 )
                 UNION
