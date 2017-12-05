@@ -320,10 +320,21 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
         FROM (
           SELECT MIN(receive_date) AS first_gift, MAX(receive_date) AS last_gift
             FROM civicrm_contribution cc
-            WHERE receive_date <= %8
-              AND cc.contribution_status_id IN (%5)
-            GROUP BY contact_id
-          ) AS temp
+            WHERE cc.contribution_status_id IN (%5) AND cc.total_amount > 0
+              AND cc.contact_id IN (
+                SELECT DISTINCT contact_id
+                FROM civicrm_contribution cc
+                WHERE cc.contribution_status_id IN (%5)
+                  AND (cc.receive_date > %9 AND cc.receive_date <= %8)
+                  AND cc.total_amount > 0
+                  AND cc.contact_id IN (
+                    SELECT contact_id FROM civicrm_contribution
+                    WHERE receive_date <= %9 AND receive_date > %10
+                      AND contribution_status_id IN (%5) AND cc.total_amount > 0
+                    GROUP BY contact_id
+                  )
+              ) GROUP BY cc.contact_id
+        ) AS temp
       ",
       'donor_lifetime_value' => "SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
         FROM (
