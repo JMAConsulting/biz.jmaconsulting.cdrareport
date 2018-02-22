@@ -80,6 +80,12 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
             'required' => TRUE,
           ),
         ),
+        'filters' => array(
+          'ending_date' => array(
+            'operatorType' => CRM_Report_Form::OP_DATE,
+            'title' => ts("Ending Date"),
+          ),
+        ),
       ),
     );
     $this->_contributionStatusId = CRM_Core_PseudoConstant::getKey(
@@ -141,21 +147,20 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       ),
     );
     $this->getRowLabels();
-    $this->getQueryDates();
     parent::__construct();
   }
 
-  protected function getQueryDates() {
+  protected function getQueryDates($date) {
     //$fiscalYear = Civi::settings()->get('fiscalYearStart');
     //$fiscalYear = date('Y') . '-' . implode('-', $fiscalYear);
-    $fiscalYear = $nextYear = date('Y-m-d');
+    $fiscalYear = $nextYear = $date;
     $fiscalYear = strtotime($fiscalYear);
 
-    $currentYear = date('Y-m-d', strtotime('-1 year', $fiscalYear));
-    $lastYear = date('Y-m-d', strtotime('-2 year', $fiscalYear));
-    $twoYearsAgo = date('Y-m-d', strtotime('-3 year', $fiscalYear));
-    $threeYearsAgo = date('Y-m-d', strtotime('-4 year', $fiscalYear));
-    $fourYearsAgo = date('Y-m-d', strtotime('-5 year', $fiscalYear));
+    $currentYear = $this->_currentYear = $date;
+    $lastYear = $this->_lastYear = date('Y-m-d', strtotime('-1 year', $fiscalYear));
+    $twoYearsAgo = $this->_twoYearsAgo = date('Y-m-d', strtotime('-2 year', $fiscalYear));
+    $threeYearsAgo = $this->_threeYearsAgo = date('Y-m-d', strtotime('-3 year', $fiscalYear));
+    $fourYearsAgo = $this->_fourYearsAgo = date('Y-m-d', strtotime('-4 year', $fiscalYear));
     $this->_queryDates = array(
       1 => array(
         8 => array($nextYear, 'String'),
@@ -225,6 +230,20 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
   }
 
   public function from() {
+    $date = date('Y-m-d');
+    if (!empty($this->_submitValues['ending_date_relative'])) {
+      $dates = $this->getFromTo($this->_submitValues['ending_date_relative']);
+      $date = date('Y-m-d', strtotime($dates[0]));
+    }
+    elseif (!empty($this->_submitValues['ending_date_from'])) {
+      $date = date('Y-m-d', strtotime($this->_submitValues['ending_date_from']));
+    }
+    $this->getQueryDates($date);
+    if ($date) {
+      $this->_columnHeaders['civicrm_dpo_current_year']['title'] = ts('Current Year ' . date('m/d/Y', strtotime($this->_currentYear)));
+      $this->_columnHeaders['civicrm_dpo_prior_year']['title'] = ts('Prior Year ' . date('m/d/Y', strtotime($this->_lastYear)));
+      $this->_columnHeaders['civicrm_dpo_two_years_ago']['title'] = ts('Two Years Ago ' . date('m/d/Y', strtotime($this->_twoYearsAgo)));
+    }
     $this->buildTempTableForDPOReport();
     $this->_from .= " FROM {$this->_dpoTempTable} {$this->_aliases['civicrm_dpo']}";
   }
