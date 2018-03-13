@@ -156,11 +156,12 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
     $fiscalYear = $nextYear = $date;
     $fiscalYear = strtotime($fiscalYear);
 
-    $currentYear = $this->_currentYear = $date;
-    $lastYear = $this->_lastYear = date('Y-m-d', strtotime('-1 year', $fiscalYear));
-    $twoYearsAgo = $this->_twoYearsAgo = date('Y-m-d', strtotime('-2 year', $fiscalYear));
-    $threeYearsAgo = $this->_threeYearsAgo = date('Y-m-d', strtotime('-3 year', $fiscalYear));
-    $fourYearsAgo = $this->_fourYearsAgo = date('Y-m-d', strtotime('-4 year', $fiscalYear));
+    $this->_currentYear = $date;
+    $currentYear = $this->_lastYear = date('Y-m-d', strtotime('-1 year', $fiscalYear));
+    $lastYear = $this->_twoYearsAgo = date('Y-m-d', strtotime('-2 year', $fiscalYear));
+    $twoYearsAgo = date('Y-m-d', strtotime('-3 year', $fiscalYear));
+    $threeYearsAgo = date('Y-m-d', strtotime('-4 year', $fiscalYear));
+    $fourYearsAgo = date('Y-m-d', strtotime('-5 year', $fiscalYear));
     $this->_queryDates = array(
       1 => array(
         8 => array($nextYear, 'String'),
