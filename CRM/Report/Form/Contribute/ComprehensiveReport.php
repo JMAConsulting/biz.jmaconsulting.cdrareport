@@ -281,11 +281,11 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
     $queries = array(
       'common_query' => " SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
         FROM civicrm_contribution cc
-        WHERE cc.contribution_status_id IN (%5) AND cc.receive_date > %9 AND cc.receive_date <= %8",
+        WHERE cc.contribution_status_id IN (%5) AND cc.receive_date >= %9 AND cc.receive_date <= %8",
       'two_or_more_gifts' => "SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago FROM (
           SELECT cc.contact_id
           FROM civicrm_contribution cc
-          WHERE cc.contribution_status_id IN (%5) AND cc.receive_date > %9 AND cc.receive_date <= %8
+          WHERE cc.contribution_status_id IN (%5) AND cc.receive_date >= %9 AND cc.receive_date <= %8
           GROUP BY contact_id HAVING COUNT(id) > 1
         ) AS cc
       ",
@@ -302,10 +302,10 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       'common_query' => " SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
       FROM civicrm_contribution cc
       WHERE  cc.contribution_status_id IN (%5)
-        AND (cc.receive_date > %9 AND cc.receive_date <= %8)
+        AND (cc.receive_date >= %9 AND cc.receive_date <= %8)
         AND cc.contact_id IN (
           SELECT contact_id FROM civicrm_contribution
-            WHERE receive_date <= %9 AND receive_date > %10
+            WHERE receive_date <= %9 AND receive_date >= %10
             AND contribution_status_id IN (%5)
             GROUP BY contact_id
         )
@@ -315,10 +315,10 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
           SELECT COUNT(DISTINCT contact_id) AS retained_donor, 0 as prior_year_donor
             FROM civicrm_contribution cc
             WHERE  cc.contribution_status_id IN (%5)
-              AND (cc.receive_date > %9 AND cc.receive_date <= %8)
+              AND (cc.receive_date >= %9 AND cc.receive_date <= %8)
               AND cc.contact_id IN (
                 SELECT contact_id FROM civicrm_contribution
-                  WHERE receive_date <= %9 AND receive_date > %10
+                  WHERE receive_date <= %9 AND receive_date >= %10
                   AND contribution_status_id IN (%5)
                   GROUP BY contact_id
                 )
@@ -326,17 +326,17 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
                 SELECT 0, COUNT(DISTINCT contact_id)
                 FROM civicrm_contribution cc
                 WHERE cc.contribution_status_id IN (%5)
-                  AND cc.receive_date > %10 AND cc.receive_date <= %9
+                  AND cc.receive_date >= %10 AND cc.receive_date <= %9
       ) temp",
       'revenue_retention_rate' => "SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
         FROM (
           SELECT SUM(total_amount) AS retained_revenue, 0 as active_revenue
             FROM civicrm_contribution cc
             WHERE  cc.contribution_status_id IN (%5)
-              AND (cc.receive_date > %9 AND cc.receive_date <= %8)
+              AND (cc.receive_date >= %9 AND cc.receive_date <= %8)
               AND cc.contact_id IN (
                 SELECT contact_id FROM civicrm_contribution
-                  WHERE receive_date <= %9 AND receive_date > %10
+                  WHERE receive_date <= %9 AND receive_date >= %10
                     AND contribution_status_id IN (%5)
                   GROUP BY contact_id
                 )
@@ -344,7 +344,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
                 SELECT 0, SUM(total_amount)
                 FROM civicrm_contribution cc
                 WHERE cc.contribution_status_id IN (%5)
-                  AND cc.receive_date > %9 AND cc.receive_date <= %8
+                  AND cc.receive_date >= %9 AND cc.receive_date <= %8
       ) temp",
       'avg_donor_lifetime' => "SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
         FROM (
@@ -355,11 +355,11 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
                 SELECT DISTINCT contact_id
                 FROM civicrm_contribution cc
                 WHERE cc.contribution_status_id IN (%5)
-                  AND (cc.receive_date > %9 AND cc.receive_date <= %8)
+                  AND (cc.receive_date >= %9 AND cc.receive_date <= %8)
                   AND cc.total_amount > 0
                   AND cc.contact_id IN (
                     SELECT contact_id FROM civicrm_contribution
-                    WHERE receive_date <= %9 AND receive_date > %10
+                    WHERE receive_date <= %9 AND receive_date >= %10
                       AND contribution_status_id IN (%5) AND total_amount > 0
                     GROUP BY contact_id
                   )
@@ -377,11 +377,11 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
                   SELECT DISTINCT contact_id
                   FROM civicrm_contribution cc
                   WHERE cc.contribution_status_id IN (%5)
-                    AND (cc.receive_date > %9 AND cc.receive_date <= %8)
+                    AND (cc.receive_date >= %9 AND cc.receive_date <= %8)
                     AND cc.total_amount > 0
                     AND cc.contact_id IN (
                       SELECT contact_id FROM civicrm_contribution
-                      WHERE receive_date <= %9 AND receive_date > %10
+                      WHERE receive_date <= %9 AND receive_date >= %10
                         AND contribution_status_id IN (%5) AND total_amount > 0
                       GROUP BY contact_id
                     )
@@ -390,7 +390,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
           UNION
           SELECT 0, SUM(total_amount)/COUNT(DISTINCT contact_id) as amount
             FROM civicrm_contribution cc
-              WHERE cc.contribution_status_id IN (%5) AND cc.receive_date > %9
+              WHERE cc.contribution_status_id IN (%5) AND cc.receive_date >= %9
                 AND cc.receive_date <= %8
           ) AS temp"
     );
@@ -422,7 +422,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       'common_query' => " SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
       FROM civicrm_contribution cc
       WHERE cc.contribution_status_id IN (%5)
-        AND cc.receive_date > %9 AND cc.receive_date <= %8
+        AND cc.receive_date >= %9 AND cc.receive_date <= %8
         AND cc.contact_id IN (
           SELECT contact_id FROM civicrm_contribution
             WHERE receive_date <= %10
@@ -431,7 +431,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
         )
         AND cc.contact_id NOT IN (
           SELECT contact_id FROM civicrm_contribution
-          WHERE receive_date <= %9 AND receive_date > %10
+          WHERE receive_date <= %9 AND receive_date >= %10
            AND contribution_status_id IN (%5)
           GROUP BY contact_id
         )
@@ -453,10 +453,10 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       'active_2' => "SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
         FROM civicrm_contribution cc
           WHERE cc.contribution_status_id IN (%5)
-          AND (cc.receive_date > %9 AND cc.receive_date <= %8)
+          AND (cc.receive_date >= %9 AND cc.receive_date <= %8)
           AND cc.contact_id IN (
             SELECT contact_id FROM civicrm_contribution
-              WHERE receive_date <= %9 AND receive_date > %10
+              WHERE receive_date <= %9 AND receive_date >= %10
                 AND contribution_status_id IN (%5)
               GROUP BY contact_id
             )
@@ -464,13 +464,13 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
       'active_3' => "SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
         FROM civicrm_contribution cc
           WHERE cc.contribution_status_id IN (%5)
-          AND (cc.receive_date > %9 AND cc.receive_date <= %8)
+          AND (cc.receive_date >= %9 AND cc.receive_date <= %8)
           AND cc.contact_id IN (
             SELECT contact_id FROM civicrm_contribution
-              WHERE receive_date <= %9 AND receive_date > %10
+              WHERE receive_date <= %9 AND receive_date >= %10
                 AND contribution_status_id IN (%5)
                 AND contact_id IN ( SELECT contact_id FROM civicrm_contribution
-              WHERE receive_date <= %10 AND receive_date > %11
+              WHERE receive_date <= %10 AND receive_date >= %11
                 AND contribution_status_id IN (%5)
               GROUP BY contact_id)
               GROUP BY contact_id
@@ -481,10 +481,10 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
           SELECT  1, -COUNT(DISTINCT contact_id)  AS contact_id_count
                 FROM civicrm_contribution cc
                 WHERE  cc.contribution_status_id IN (%5)
-                AND (cc.receive_date > %9 AND cc.receive_date <= %8)
+                AND (cc.receive_date >= %9 AND cc.receive_date <= %8)
                 AND cc.contact_id 	IN (
                   SELECT contact_id FROM civicrm_contribution
-                    WHERE receive_date <= %9 AND receive_date > %10
+                    WHERE receive_date <= %9 AND receive_date >= %10
                       AND contribution_status_id IN (%5)
                     GROUP BY contact_id
                   )
@@ -492,7 +492,7 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
                 SELECT 2, COUNT(DISTINCT contact_id)
                 FROM civicrm_contribution cc
                 WHERE cc.contribution_status_id IN (%5)
-                  AND cc.receive_date > %10 AND cc.receive_date <= %9
+                  AND cc.receive_date >= %10 AND cc.receive_date <= %9
       ) temp
       ",
       'attrition_rate' => "SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
@@ -500,10 +500,10 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
           SELECT COUNT(DISTINCT contact_id) AS retained_donor, 0 as prior_year_donor
             FROM civicrm_contribution cc
             WHERE  cc.contribution_status_id IN (%5)
-              AND (cc.receive_date > %9 AND cc.receive_date <= %8)
+              AND (cc.receive_date >= %9 AND cc.receive_date <= %8)
               AND cc.contact_id IN (
                 SELECT contact_id FROM civicrm_contribution
-                  WHERE receive_date <= %9 AND receive_date > %10
+                  WHERE receive_date <= %9 AND receive_date >= %10
                     AND contribution_status_id IN (%5)
                   GROUP BY contact_id
                 )
@@ -511,20 +511,20 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
                 SELECT 0, COUNT(DISTINCT contact_id) prior_year_donor
                 FROM civicrm_contribution cc
                 WHERE cc.contribution_status_id IN (%5)
-                  AND cc.receive_date > %10 AND cc.receive_date <= %9
+                  AND cc.receive_date >= %10 AND cc.receive_date <= %9
       ) temp",
       'lost_2' => " SELECT %1 label, %2 current_year, %3 prior_year, %4 two_years_ago
         FROM civicrm_contribution cc
-        WHERE cc.receive_date > %10 AND cc.receive_date <= %9
+        WHERE cc.receive_date >= %10 AND cc.receive_date <= %9
           AND  contribution_status_id IN (%5)
           AND contact_id IN (
             SELECT DISTINCT contact_id
               FROM civicrm_contribution cc
-              WHERE cc.receive_date > %11 AND cc.receive_date <= %10
+              WHERE cc.receive_date >= %11 AND cc.receive_date <= %10
                 AND  contribution_status_id IN (%5))
                 AND contact_id NOT IN (SELECT DISTINCT contact_id
                     FROM civicrm_contribution cc
-                    WHERE cc.receive_date > %9 AND cc.receive_date <= %8
+                    WHERE cc.receive_date >= %9 AND cc.receive_date <= %8
                       AND  contribution_status_id IN (%5))
       ",
     );
