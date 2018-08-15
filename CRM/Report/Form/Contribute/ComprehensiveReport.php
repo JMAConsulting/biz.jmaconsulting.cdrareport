@@ -150,6 +150,16 @@ class CRM_Report_Form_Contribute_ComprehensiveReport extends CRM_Report_Form {
     parent::__construct();
   }
 
+  public function buildInstanceAndButtons() {
+    parent::buildInstanceAndButtons();
+    CRM_Core_Resources::singleton()->addScript(
+    "CRM.$(function($) {
+      $('.crm-absolute-date-to').hide();
+      $('.crm-absolute-date-from label').text('Is:');
+    });"
+  );
+  }
+
   protected function getQueryDates($date) {
     //$fiscalYear = Civi::settings()->get('fiscalYearStart');
     //$fiscalYear = date('Y') . '-' . implode('-', $fiscalYear);
